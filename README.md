@@ -10,6 +10,7 @@ CMD ["./plugin_repackaging.sh", "-p", "manylinux_2_17_x86_64", "market", "antv",
 2.build
 ```bash
 docker build -t dify-plugin-repackaging .
+docker build --platform linux/amd64 -t dify-plugin-repackaging .  # for amd64
 ```
 
 

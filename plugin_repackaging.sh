@@ -110,11 +110,21 @@ repackage(){
 	echo "Unzip success."
 	echo "Repackaging ..."
 	cd ${CURR_DIR}/${PACKAGE_NAME}
+	# Remove extras like [all] to avoid pulling optional deps (e.g. docopt)
+	if [[ "linux" == "$OS_TYPE" ]]; then
+		sed -i 's/\[all\]//g' requirements.txt
+	elif [[ "darwin" == "$OS_TYPE" ]]; then
+		sed -i ".bak" 's/\[all\]//g' requirements.txt
+		rm -f requirements.txt.bak
+	fi
 	pip download ${PIP_PLATFORM} -r requirements.txt -d ./wheels --index-url ${PIP_MIRROR_URL} --trusted-host mirrors.aliyun.com
 	if [[ $? -ne 0 ]]; then
 		echo "Pip download failed."
 		exit 1
 	fi
+	# Ensure build/install tools are available offline (setuptools/wheel/pip)
+	# Some packages (sdists) require setuptools to be present during install.
+	pip download ${PIP_PLATFORM} "setuptools>=40.8.0" wheel pip -d ./wheels --index-url ${PIP_MIRROR_URL} --trusted-host mirrors.aliyun.com || true
 	if [[ "linux" == "$OS_TYPE" ]]; then
 		sed -i '1i\--no-index --find-links=./wheels/' requirements.txt
 	elif [[ "darwin" == "$OS_TYPE" ]]; then
@@ -167,7 +177,7 @@ print_usage() {
 
 while getopts "p:s:" opt; do
 	case "$opt" in
-		p) PIP_PLATFORM="--platform ${OPTARG} --only-binary=:all:" ;;
+		p) PIP_PLATFORM="--platform ${OPTARG}" ;;
 		s) PACKAGE_SUFFIX="${OPTARG}" ;;
 		*) print_usage; exit 1 ;;
 	esac
