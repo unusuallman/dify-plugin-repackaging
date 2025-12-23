@@ -9,6 +9,7 @@ RUN echo "deb https://mirrors.ustc.edu.cn/debian/ bookworm main contrib non-free
 # 安装必要的工具
 RUN apt-get update && \
     apt-get install -y curl unzip && \
+    pip install --upgrade pip setuptools wheel && \
     rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
@@ -19,6 +20,3 @@ COPY . .
 
 # 给脚本添加执行权限
 RUN chmod +x plugin_repackaging.sh
-
-# 设置默认命令
-CMD ["./plugin_repackaging.sh", "-p", "manylinux_2_17_x86_64", "market", "antv", "visualization", "0.1.7"] 
